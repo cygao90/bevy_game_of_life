@@ -1,5 +1,5 @@
 use std::ops::{Deref, DerefMut};
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap, log};
 use crate::{components::{CellState, Coordinate}};
 
 
@@ -22,6 +22,9 @@ pub struct Bounds {
 }
 
 #[derive(Debug, Clone, Resource)]
+pub struct CellCollections(pub HashMap<Coordinate, Entity>);
+
+#[derive(Debug, Clone, Resource)]
 pub struct Board {
     pub cell_map: CellMap,
     pub bounds: Bounds,
@@ -29,8 +32,9 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn mouse_position(&self, window: &Window, position: Vec2) -> Option<Coordinate> {
+    pub fn mouse_position(&self, window: &Window, mut position: Vec2) -> Option<Coordinate> {
         let window_size = Vec2::new(window.width(), window.height());
+        position.y = window.height() - position.y;
         let position = position - window_size / 2.;
 
         if !self.bounds.in_bounds(position) {
@@ -40,6 +44,16 @@ impl Board {
         let coordinate = position - self.bounds.position;
         Some(Coordinate { x: (coordinate.x / self.cell_size) as usize, y: (coordinate.y / self.cell_size) as usize })
     } 
+}
+
+impl CellCollections {
+    pub fn get_selected_cell(&self, coord: &Coordinate) -> Option<&Entity> {
+        self.0.get(coord)
+    }
+
+    pub fn update_collection(&mut self, coord: Coordinate, entity: Entity) {
+        self.0.insert(coord, entity);
+    }
 }
 
 impl Bounds {

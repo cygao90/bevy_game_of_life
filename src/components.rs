@@ -3,13 +3,13 @@ use bevy::prelude::*;
 use std::fmt::{self, Display, Formatter};
 use std::ops::{Add, Sub};
 
-#[derive(Debug, Clone, Component)]
+#[derive(Debug, Clone, PartialEq, Eq, Component)]
 pub enum CellState {
     DEAD,
     ALIVE,
 }
 
-#[derive(Debug, Clone, Component)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Component)]
 pub struct Coordinate {
     pub x: usize,
     pub y: usize,

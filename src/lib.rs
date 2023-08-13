@@ -1,10 +1,10 @@
 use std::cell;
 
-use bevy::{prelude::*, sprite::Anchor};
-use resources::{BoardOptions, CellMap, Bounds, Board};
+use bevy::{prelude::*, sprite::Anchor, utils::HashMap};
+use resources::{BoardOptions, CellMap, Bounds, Board, CellCollections};
 use bevy::log;
 
-use crate::{components::Coordinate, event::input_handling};
+use crate::{components::Coordinate, event::{input_handling, trigger_event_handler, CellTriggerEvent}};
 
 mod components;
 mod resources;
@@ -18,7 +18,9 @@ impl Plugin for BoardPlugin {
             ..Default::default()
         })
             .add_systems(Startup, Self::setup)
-            .add_systems(Update, input_handling);
+            .add_systems(Update, input_handling)
+            .add_systems(Update, trigger_event_handler)
+            .add_event::<CellTriggerEvent>();
         log::info!("Loaded Board Plugin");
     }
 }
@@ -46,6 +48,8 @@ impl BoardPlugin {
             -(board_size.y / 2.),
             0.
         );
+
+        let mut cell_collections = HashMap::with_capacity(board_width * board_height);
 
         log::info!("window size: {} * {}", window.width(), window.height());
         log::info!("cell size: {}", cell_size);
@@ -79,7 +83,8 @@ impl BoardPlugin {
                 for (y, line) in cell_map.iter().enumerate() {
                     for (x, _cell) in line.iter().enumerate() {
                         // log::info!("cell: ({x}, {y})");
-                        parent.spawn(SpriteBundle {
+                        let coord = Coordinate {x: x, y: y};
+                        let entity = parent.spawn(SpriteBundle {
                             sprite: Sprite {
                                 color: Color::BLACK,
                                 custom_size: Some(Vec2::splat(cell_size - board_options.cell_padding)),
@@ -92,10 +97,9 @@ impl BoardPlugin {
                             ),
                             ..Default::default()
                         })
-                            .insert(Coordinate {
-                                x: x,
-                                y: y,
-                            });
+                            .insert(coord.clone())
+                            .id();
+                        cell_collections.insert(coord, entity);
                     }
                 }
             });
@@ -105,5 +109,6 @@ impl BoardPlugin {
             bounds: Bounds { position: board_position.truncate(), size: board_size },
             cell_size: cell_size,
         });
+        commands.insert_resource(CellCollections(cell_collections));
     }
 }
