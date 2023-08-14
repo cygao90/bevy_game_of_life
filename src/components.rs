@@ -26,6 +26,17 @@ impl Add for Coordinate {
     }
 }
 
+impl Add<(i8, i8)> for Coordinate {
+    type Output = Self;
+
+    fn add(self, (x, y): (i8, i8)) -> Self::Output {
+        let x = ((self.x as isize) + x as isize) as usize;
+        let y = ((self.y as isize) + y as isize) as usize;
+        Self { x, y }
+    }
+}
+
+
 impl Sub for Coordinate {
     type Output = Self;
 

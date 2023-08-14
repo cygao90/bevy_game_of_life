@@ -1,14 +1,15 @@
-use std::cell;
-
-use bevy::{prelude::*, sprite::Anchor, utils::HashMap};
-use resources::{BoardOptions, CellMap, Bounds, Board, CellCollections};
+use bevy::{prelude::*, utils::HashMap};
+use resources::*;
 use bevy::log;
 
-use crate::{components::Coordinate, event::{input_handling, trigger_event_handler, CellTriggerEvent}};
+use crate::components::Coordinate;
+use crate::event::*;
+use crate::state::GameState;
 
 mod components;
 mod resources;
 mod event;
+mod state;
 
 pub struct BoardPlugin;
 
@@ -17,10 +18,28 @@ impl Plugin for BoardPlugin {
         app.insert_resource(BoardOptions {
             ..Default::default()
         })
+            .add_state::<GameState>()
+            .insert_resource(LifeTimer(Timer::from_seconds(
+                0.2,
+                TimerMode::Repeating,
+            )))
             .add_systems(Startup, Self::setup)
-            .add_systems(Update, input_handling)
-            .add_systems(Update, trigger_event_handler)
-            .add_event::<CellTriggerEvent>();
+            .add_systems(
+                Update,
+                (
+                    mouse_input_handling,
+                    trigger_event_handler
+                ).run_if(in_state(GameState::INITIAL))
+            )
+            .add_systems(
+                Update,
+                (
+                update_life,
+                ).run_if(in_state(GameState::RUNNING))
+            )
+            .add_systems(Update, (key_board_input_handling, update_event_handler))
+            .add_event::<CellTriggerEvent>()
+            .add_event::<CellUpdateEvent>();
         log::info!("Loaded Board Plugin");
     }
 }
