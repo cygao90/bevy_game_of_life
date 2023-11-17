@@ -1,5 +1,3 @@
-use std::f32::consts::E;
-
 use bevy::input::{mouse::MouseButtonInput, ButtonState};
 use bevy::prelude::*;
 use bevy::log;
@@ -52,7 +50,6 @@ pub fn update_life(
     time: Res<Time>,
 ) {
     if life_timer.0.tick(time.delta()).finished() {
-        log::info!("update once");
         let events: Vec<_> = board.cell_map.iter().enumerate()
             .flat_map(|(y, states), | {
                 states.iter().enumerate().map( move |(x, state)| {
@@ -94,13 +91,11 @@ pub fn trigger_event_handler(
     mut cell_update_ewr: EventWriter<CellUpdateEvent>,
 ) {
     for trigger_event in cell_trigger_evr.iter() {
-        log::info!("trigger event");
         let coord = trigger_event.0;
             let new_cell_state = match board.cell_map.map[coord.x][coord.y] {
             CellState::DEAD => CellState::ALIVE,
             CellState::ALIVE => CellState::DEAD,
         };
-        log::info!("sent");
         cell_update_ewr.send(CellUpdateEvent { coord: coord, state: new_cell_state });
     }
 }
@@ -114,7 +109,6 @@ pub fn update_event_handler(
     mut board: ResMut<Board>,
 ) {
     for update_event in cell_update_evr.iter() {
-        log::info!("update event");
         let (coord, new_cell_state) = (update_event.coord, &update_event.state);
         if let Some(entity) = cell_collections.get_selected_cell(&coord) {
             if let Ok(parent) = parent_query.get(*entity) {

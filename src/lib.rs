@@ -83,7 +83,7 @@ impl BoardPlugin {
             .with_children(|parent| {
                 parent.spawn(SpriteBundle {
                     sprite: Sprite { 
-                        color: Color::GREEN,
+                        color: Color::Rgba { red: 255., green: 254., blue: 255., alpha: 0. },
                         custom_size: Some(
                             Vec2::new(
                                 board_width as f32 * cell_size,
